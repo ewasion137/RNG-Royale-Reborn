@@ -40,4 +40,4 @@ end
 function love.draw()
     love.graphics.print("Press SPACE to ROLL", 10, 10)
     -- Тут будет отрисовка UI
-endz
+end
