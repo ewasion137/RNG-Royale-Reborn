@@ -8,5 +8,6 @@ desktop.ini
 /tmp/
 .vscode/
 .idea/
+love.lnk
 *.sublime-project
 *.sublime-workspace
