@@ -1,66 +1,41 @@
-local ItemsData = require("src.logic.items")
-local MutationsData = require("src.logic.mutations")
-local Mechanics = require("src.logic.mechanics")
-local Visuals = require("src.utils.visuals")
-local Player = require("src.logic.player")
-
-local last_roll = nil
-local images = {}
-
-function love.load()
-    -- Загрузка картинок (уже есть)
-    for _, item in ipairs(ItemsData.flat) do
-        images[item.id] = love.graphics.newImage("assets/images/items/" .. item.img)
-    end
-    -- Создадим белый круг для ауры (или загрузи свой png ауры)
-    -- images.aura = love.graphics.newImage("assets/images/aura.png")
-end
-
-function love.update(dt)
-    Visuals.update(dt)
-end
+local UI = require("src.ui.components")
 
 function love.draw()
-    Visuals.apply_shake() -- Применяем тряску ко всему экрану
+    -- Устанавливаем фон (25, 25, 25)
+    love.graphics.clear(25/255, 25/255, 25/255)
+
+    -- 1. Групбокс Upgrades (12, 12, 375, 315)
+    UI.drawGroupBox("Upgrades", 12, 12, 375, 315)
     
-    love.graphics.print("Money: " .. Player.money .. " | Level: " .. Player.level, 20, 20)
-    love.graphics.print("Press SPACE to ROLL", 20, 40)
-
-    if last_roll then
-        local item = last_roll.item
-        local mut = last_roll.mut
-        
-        -- 1. Рисуем ауру (если мутация не "none")
-        if mut.id ~= "none" then
-            local color = Visuals.colors[mut.id] or {1,1,1,1}
-            love.graphics.setColor(color)
-            -- Рисуем светящийся круг за предметом
-            love.graphics.circle("fill", 400, 300, 70 + math.sin(love.timer.getTime()*5)*10)
-        end
-        
-        -- 2. Рисуем сам предмет
-        love.graphics.setColor(1, 1, 1, 1)
-        if images[item.id] then
-            love.graphics.draw(images[item.id], 400, 300, 0, 2, 2, 16, 16)
-        end
-        
-        -- 3. Текст
-        love.graphics.printf(mut.name .. " " .. item.name, 0, 400, 800, "center")
-        love.graphics.printf("Value: " .. math.floor(item.value * mut.multiplier), 0, 430, 800, "center")
+    -- Кнопка LUCK (9, 20) внутри группы -> (12+9, 12+20)
+    if UI.button("+LUCK", 21, 32, 166, 90, {64/255, 64/255, 0}, {1, 1, 0}) then
+        -- Логика покупки
     end
-end
+    
+    -- Кнопка Faster Roll (195, 20) -> (12+195, 12+20)
+    UI.button("Faster Roll", 207, 32, 171, 90, {0, 64/255, 64/255}, {0, 1, 1})
 
-function love.keypressed(key)
-    if key == "space" then
-        local item = Mechanics.roll_item(ItemsData.flat, Player.luck_upgrades, 1, 1)
-        local mut = Mechanics.roll_mutation(MutationsData, false)
-        
-        last_roll = {item = item, mut = mut}
-        Player.award_xp(item, mut)
-
-        -- Если выпало что-то крутое (Epic и выше) — трясем экран!
-        if item.rarity == "epic" or item.rarity == "legendary" or item.rarity == "mythic" or item.rarity == "unbelievable" then
-            Visuals.shake(0.5, 10)
-        end
+    -- 2. Групбокс Play (397, 12, 375, 315)
+    UI.drawGroupBox("Play", 397, 12, 375, 315)
+    
+    -- Кнопка Roll (26, 20)
+    if UI.button("Roll", 397+26, 12+20, 116, 52, {64/255, 64/255, 64/255}, {1, 1, 1}) then
+        -- Логика ролла
     end
+
+    -- 3. XP Progress Bar (11, 333, 761, 36)
+    love.graphics.setColor(0.1, 0.1, 0.1)
+    love.graphics.rectangle("fill", 11, 333, 761, 36) -- Фон бара
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.rectangle("line", 11, 333, 761, 36) -- Рамка бара
+    -- Отрисовка заполнения (пример 50%)
+    love.graphics.setColor(1, 1, 1, 0.5)
+    love.graphics.rectangle("fill", 11, 333, 761 * 0.5, 36)
+
+    -- 4. Групбокс Inventory (12, 396, 760, 230)
+    UI.drawGroupBox("Inventory", 12, 396, 760, 230)
+
+    -- 5. Нижние кнопки (Store, Settings и т.д.)
+    UI.button("Store", 471, 632, 146, 46, {64/255, 64/255, 64/255}, {1, 1, 1})
+    UI.button("Settings", 623, 632, 148, 46, {64/255, 64/255, 64/255}, {1, 1, 1})
 end
