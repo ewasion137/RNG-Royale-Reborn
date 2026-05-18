@@ -11,3 +11,5 @@ desktop.ini
 love.lnk
 *.sublime-project
 *.sublime-workspace
+run.bat
+run.sh
