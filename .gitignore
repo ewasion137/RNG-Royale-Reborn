@@ -13,3 +13,4 @@ love.lnk
 *.sublime-workspace
 run.bat
 run.sh
+run.ps1
