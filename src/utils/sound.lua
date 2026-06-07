@@ -1,7 +1,9 @@
+-- src/utils/sound.lua
 local Settings = require("src.utils.settings")
 
 local Sound = {
     sources = {},
+    active_clones = {}, -- Сюда сохраняются играющие в данный момент SFX
     music = nil,
     music_name = nil,
 }
@@ -14,6 +16,17 @@ function Sound.load()
     end
 end
 
+function Sound.update()
+    -- Безопасная очистка завершенных треков из памяти
+    for name, clones in pairs(Sound.active_clones) do
+        for i = #clones, 1, -1 do
+            if not clones[i]:isPlaying() then
+                table.remove(clones, i)
+            end
+        end
+    end
+end
+
 function Sound.play_sfx(name)
     if Settings.sfx_volume <= 0 then return end
     local source = Sound.sources[name]
@@ -22,6 +35,20 @@ function Sound.play_sfx(name)
     local clone = source:clone()
     clone:setVolume(Settings.sfx_volume)
     clone:play()
+
+    Sound.active_clones[name] = Sound.active_clones[name] or {}
+    table.insert(Sound.active_clones[name], clone)
+end
+
+function Sound.stop_sfx(name)
+    -- Останавливаем все запущенные клоны этого звука (например, "roll.wav")
+    local clones = Sound.active_clones[name]
+    if clones then
+        for _, clone in ipairs(clones) do
+            clone:stop()
+        end
+        Sound.active_clones[name] = {}
+    end
 end
 
 function Sound.play_music(name)
