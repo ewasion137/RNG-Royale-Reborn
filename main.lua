@@ -1,7 +1,9 @@
+-- main.lua
 local Game = require("src.game")
 local GameScreen = require("src.ui.game_screen")
 local UI = require("src.ui.components")
 local Visuals = require("src.utils.visuals")
+local Sound = require("src.utils.sound")
 
 function love.load()
     love.math.setRandomSeed(os.time())
@@ -11,6 +13,7 @@ end
 
 function love.update(dt)
     Visuals.update(dt)
+    Sound.update() -- Чистит отыгравшие клоны звуков из оперативной памяти
     Game.update(dt)
 end
 
