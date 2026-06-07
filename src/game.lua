@@ -1,3 +1,4 @@
+-- src/game.lua
 local Constants = require("src.logic.constants")
 local Items = require("src.logic.items")
 local Mutations = require("src.logic.mutations")
@@ -9,6 +10,7 @@ local Save = require("src.logic.save")
 local Settings = require("src.utils.settings")
 local Sound = require("src.utils.sound")
 local Format = require("src.utils.format")
+local Visuals = require("src.utils.visuals") -- Подключаем наши визуальные эффекты
 
 local Game = {
     player = nil,
@@ -136,9 +138,10 @@ function Game.show_notification(text, duration)
 end
 
 function Game.spawn_floating_money(amount)
+    -- Смещено ближе к левому боксу с балансом
     table.insert(Game.floating_money, {
         amount = amount,
-        x = 20,
+        x = 50,
         y = 285,
         life = 1.5,
         max_life = 1.5,
@@ -207,21 +210,58 @@ function Game.start_roll()
 end
 
 function Game.finish_roll()
+    Sound.stop_sfx("roll.wav") -- МГНОВЕННАЯ ОБРЕЗКА ЗВУКА КРУТИЛКИ!
+
     local rolled = Mechanics.roll_item(Items.flat, Mutations.list, Game.player)
     Mechanics.record_roll_stats(Game.player, rolled)
     Game.last_rolled = rolled
 
+    -- Определение цвета эффектов
+    local rarity = rolled.material.rarity
+    local mut_name = rolled.mutation.name
+    local effect_color = {1, 1, 1, 1}
+
+    if Constants.MUTATION_COLORS[mut_name] then
+        effect_color = Constants.MUTATION_COLORS[mut_name]
+    elseif rarity == "rare" then
+        effect_color = {0.3, 0.6, 1, 1}
+    elseif rarity == "epic" then
+        effect_color = {0.7, 0.2, 1, 1}
+    elseif rarity == "legendary" then
+        effect_color = {1, 0.8, 0, 1}
+    elseif rarity == "mythic" then
+        effect_color = {1, 0.1, 0.1, 1}
+    elseif rarity == "unbelievable" then
+        effect_color = {0, 1, 1, 1}
+    end
+
+    -- Взрыв брутальных частиц прямо по центру рамки Play (x=584, y=160)
+    Visuals.spawn_particles(584, 160, effect_color, 25)
+
     if rolled.material.rarity == "unbelievable" and rolled.mutation.name ~= "Ничего" then
         Sound.play_sfx("unbelivable_mutation.wav")
+        Visuals.flash(0.5, {0, 1, 1, 0.8}) -- Яркая бирюзовая вспышка
+        Visuals.shake(0.8, 15)             -- Мощнейшее землетрясение экрана
     else
         Sound.play_sfx(Constants.RARITY_SOUNDS[rolled.material.rarity])
         if rolled.mutation.name ~= "Ничего" then
             Sound.play_sfx(Constants.MUTATION_SOUNDS[rolled.mutation.name])
         end
-    end
 
-    if RARE_SHAKE_RARITIES[rolled.material.rarity] then
-        require("src.utils.visuals").shake(0.3, 5)
+        -- Вспышки и брутальные встряски для редких предметов
+        if rarity == "epic" then
+            Visuals.flash(0.2, {0.7, 0.2, 1, 0.4})
+            Visuals.shake(0.3, 4)
+        elseif rarity == "legendary" then
+            Visuals.flash(0.3, {1, 0.8, 0, 0.5})
+            Visuals.shake(0.5, 8)
+        elseif rarity == "mythic" then
+            Visuals.flash(0.4, {1, 0.1, 0.1, 0.6})
+            Visuals.shake(0.7, 12)
+        elseif rarity == "unbelievable" then
+            Visuals.flash(0.5, {0, 1, 1, 0.7})
+            Visuals.shake(0.8, 15)
+        end
     end
 
     Game.unlock_achievements(Mechanics.check_achievements(Game.player))
@@ -234,10 +274,15 @@ function Game.sell_now()
     local value, leveled_up = Mechanics.sell_rolled_item(Game.player, Game.last_rolled)
     Game.target_money = Game.player.money
     Game.spawn_floating_money(value)
+    
+    -- Золотые искры при продаже
+    Visuals.spawn_particles(584, 160, {1, 0.84, 0, 1}, 15)
+
     Game.last_rolled = nil
     Sound.play_sfx("selling.wav")
     if leveled_up then
         Sound.play_sfx("level_up.wav")
+        Visuals.flash(0.3, {0.2, 0.8, 0.2, 0.4})
     end
     Game.unlock_achievements(Mechanics.check_achievements(Game.player))
 end
@@ -245,13 +290,19 @@ end
 function Game.collect_now()
     if not Game.last_rolled then return end
     local amount, leveled_up = Mechanics.collect_rolled_item(Game.player, Game.last_rolled)
+    
+    -- Синие искры при сохранении предмета
+    Visuals.spawn_particles(584, 160, {0.3, 0.6, 1, 1}, 12)
+
     if amount > 1 then
         Sound.play_sfx("duplication_success.wav")
+        Visuals.flash(0.2, {0.3, 1, 0.3, 0.3})
     end
     Sound.play_sfx("inventory.wav")
     Game.last_rolled = nil
     if leveled_up then
         Sound.play_sfx("level_up.wav")
+        Visuals.flash(0.3, {0.2, 0.8, 0.2, 0.4})
     end
     Game.unlock_achievements(Mechanics.check_achievements(Game.player))
 end
@@ -269,9 +320,14 @@ function Game.confirm_sell_all()
     if total > 0 then
         Game.target_money = Game.player.money
         Game.spawn_floating_money(total)
+        
+        -- Массивный золотой фонтан из инвентаря
+        Visuals.spawn_particles(240, 500, {1, 0.84, 0, 1}, 30)
+
         Sound.play_sfx("selling.wav")
         if leveled_up then
             Sound.play_sfx("level_up.wav")
+            Visuals.flash(0.3, {0.2, 0.8, 0.2, 0.4})
         end
     end
     Game.dialog = nil
@@ -286,6 +342,9 @@ function Game.buy_upgrade(key)
         end
         Game.sync_money()
         Sound.play_sfx("upgrade_buy.wav")
+        
+        -- Зеленое свечение покупки
+        Visuals.flash(0.15, {0.2, 0.8, 0.2, 0.2})
         Game.unlock_achievements(Mechanics.check_achievements(Game.player))
     else
         Sound.play_sfx("cant_buy.wav")
@@ -297,6 +356,7 @@ function Game.use_potion(name)
     local ok, reason = Mechanics.use_potion(Game.player, name)
     if ok then
         Sound.play_sfx("drink_potion.wav")
+        Visuals.flash(0.2, {0.3, 0.9, 0.3, 0.3})
         Game.unlock_achievements(Mechanics.check_achievements(Game.player))
     elseif reason == "limit" then
         Sound.play_sfx("cant_buy.wav")
@@ -338,6 +398,7 @@ function Game.sell_inventory_key(key)
         Sound.play_sfx("selling.wav")
         if leveled_up then
             Sound.play_sfx("level_up.wav")
+            Visuals.flash(0.3, {0.2, 0.8, 0.2, 0.4})
         end
     end
 end
@@ -374,6 +435,10 @@ function Game.confirm_prestige()
         Sound.play_sfx(prestige_sound)
     end
 
+    -- Масштабный взрыв фиолетовых осколков на престиж
+    Visuals.spawn_particles(392, 368, {0.8, 0.1, 1, 1}, 50)
+    Visuals.flash(0.6, {0.8, 0.1, 1, 0.7})
+
     Game.last_rolled = nil
     Game.player = Mechanics.prestige_reset(Game.player)
     Game.sync_money()
@@ -405,13 +470,21 @@ function Game.handle_auto_roll()
 
     if mode == "sell" then
         Game.target_money = Game.player.money
+        -- Пассивные мелкие искры в табло денег
+        Visuals.spawn_particles(180, 280, {1, 0.84, 0, 0.5}, 2)
+    else
+        -- Пассивные синие искры в инвентаре
+        Visuals.spawn_particles(200, 500, {0.3, 0.6, 1, 0.5}, 2)
     end
 
     if RARE_NOTIFY_RARITIES[rolled.material.rarity] then
         local mut_text = rolled.mutation.name ~= "Ничего" and (" " .. rolled.mutation.name) or ""
         Game.show_notification("Auto: " .. rolled.material.name .. mut_text .. "!", 3)
+        
+        -- Авторолл редких предметов также трясет экран и дает легкую вспышку!
         if RARE_SHAKE_RARITIES[rolled.material.rarity] then
-            require("src.utils.visuals").shake(0.15, 3)
+            Visuals.shake(0.15, 3)
+            Visuals.flash(0.15, {1, 0.5, 0, 0.3})
         end
     end
 
@@ -426,7 +499,7 @@ function Game.update(dt)
 
     Game.breathing_angle = Game.breathing_angle + dt * 6
     Game.prismatic_hue = (Game.prismatic_hue + dt * 120) % 360
-    Game.prismatic_color = {require("src.utils.visuals").color_from_hsv(Game.prismatic_hue, 1, 1)}
+    Game.prismatic_color = {Visuals.color_from_hsv(Game.prismatic_hue, 1, 1)}
 
     if Game.is_rolling then
         Game.roll_timer = Game.roll_timer - dt
@@ -440,8 +513,9 @@ function Game.update(dt)
         end
     end
 
+    -- СТАРАЯ ЛОГИКА АВТОРОЛЛА: авторолл работает полностью в фоне (не блокируется ручным роллом)
     local auto_level = Game.player.upgrades.AutoRoll.level
-    if auto_level > 0 and not Game.is_rolling and not Game.last_rolled then
+    if auto_level > 0 then
         Game.auto_roll_cooldown = Game.auto_roll_cooldown - dt
         if Game.auto_roll_cooldown <= 0 then
             Game.handle_auto_roll()
