@@ -62,17 +62,25 @@ local function draw_play_panel(game)
     local px, py = 397, 12
     UI.draw_group_box("Play", px, py, 375, 315)
 
-    local panel_x, panel_y = px + 26, py + 82
-    UI.draw_panel(panel_x, panel_y, 200, 200, {0.08, 0.08, 0.08, 1})
+    -- Как в WinForms: picPanel внутри groupPlay (75, 78), размер 220x187
+    local frame_x, frame_y = px + 75, py + 78
+    local frame_w, frame_h = 220, 187
+    UI.draw_panel(frame_x, frame_y, frame_w, frame_h, {0.08, 0.08, 0.08, 1})
+
+    love.graphics.setScissor(frame_x, frame_y, frame_w, frame_h)
+    if game.last_rolled then
+        local rolled = game.last_rolled
+        local image = game.images[rolled.material.img]
+        if image then
+            Visuals.draw_mutation_aura(image, rolled.mutation.name, game.prismatic_color, frame_x, frame_y, frame_w, frame_h)
+        end
+    end
+    love.graphics.setScissor()
 
     if game.is_rolling then
         UI.draw_label("ROLLING...", px + 120, py + 40, UI.fonts.button)
     elseif game.last_rolled then
         local rolled = game.last_rolled
-        local image = game.images[rolled.material.img]
-        if image then
-            Visuals.draw_mutation_aura(image, rolled.mutation.name, game.prismatic_color, panel_x + 36, panel_y + 36, 1.2)
-        end
         UI.draw_label(rolled.material.name:upper(), px + 90, py + 40, UI.fonts.button)
         if rolled.mutation.name ~= "Ничего" then
             UI.draw_label(rolled.mutation.name:upper(), px + 90, py + 68, UI.fonts.main, Constants.MUTATION_COLORS[rolled.mutation.name])
@@ -256,13 +264,8 @@ function GameScreen.draw(game)
 
         local result = UI.draw_modal(game.dialog.title, game.dialog.message, buttons)
         if result == "yes" then
-            if game.dialog.kind == "prestige" then
-                game.confirm_prestige()
-            elseif game.dialog.kind == "sell_all" then
-                game.confirm_sell_all()
-            elseif game.dialog.kind == "reset" then
-                SettingsOverlay.apply_reset()
-            end
+            game.pending_action = game.dialog.kind
+            game.dialog = nil
         elseif result == "no" or result == "ok" then
             game.dialog = nil
         end

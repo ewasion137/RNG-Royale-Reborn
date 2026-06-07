@@ -7,14 +7,36 @@ local UI = {
     mouse_was_down = false,
 }
 
+local function load_font(path, size)
+    local font = love.graphics.newFont(path, size)
+    font:setFilter("nearest", "nearest")
+    return font
+end
+
+local function pick_font_path()
+    local candidates = {
+        "assets/fonts/Pixel Game.otf",
+        "assets/fonts/game.ttf",
+        "assets/fonts/vstr.ttf",
+    }
+    for _, path in ipairs(candidates) do
+        if love.filesystem.getInfo(path) then
+            return path
+        end
+    end
+    error("no font found in assets/fonts/")
+end
+
 function UI.load()
+    local font_path = pick_font_path()
+
     UI.fonts = {
-        main = love.graphics.newFont("assets/fonts/vstr.ttf", 14),
-        small = love.graphics.newFont("assets/fonts/vstr.ttf", 12),
-        button = love.graphics.newFont("assets/fonts/vstr.ttf", 20),
-        title = love.graphics.newFont("assets/fonts/vstr.ttf", 36),
-        huge = love.graphics.newFont("assets/fonts/vstr.ttf", 72),
-        money = love.graphics.newFont("assets/fonts/vstr.ttf", 18),
+        main = load_font(font_path, 16),
+        small = load_font(font_path, 14),
+        button = load_font(font_path, 22),
+        title = load_font(font_path, 32),
+        huge = load_font(font_path, 64),
+        money = load_font(font_path, 20),
     }
 end
 

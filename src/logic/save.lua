@@ -125,7 +125,7 @@ function Save.load()
         local decoded = love.data.decode("string", "base64", encoded)
         local save_file = json.decode(decoded)
 
-        local expected_hash = love.data.hash("string", "sha256", save_file.GameDataJson .. Constants.SAVE_SECRET_KEY)
+        local expected_hash = love.data.hash("sha256", save_file.GameDataJson .. Constants.SAVE_SECRET_KEY)
         if save_file.Hash ~= expected_hash then
             error("hash mismatch")
         end
@@ -142,13 +142,16 @@ end
 
 function Save.save(player)
     local game_data_json = json.encode(to_save_data(player))
-    local hash = love.data.hash("string", "sha256", game_data_json .. Constants.SAVE_SECRET_KEY)
+    local hash = love.data.hash("sha256", game_data_json .. Constants.SAVE_SECRET_KEY)
     local save_file = json.encode({
         GameDataJson = game_data_json,
         Hash = hash,
     })
     local encoded = love.data.encode("string", "base64", save_file)
-    love.filesystem.write(SAVE_FILE, encoded)
+    local written = love.filesystem.write(SAVE_FILE, encoded)
+    if not written then
+        error("failed to write save file")
+    end
 end
 
 function Save.delete()

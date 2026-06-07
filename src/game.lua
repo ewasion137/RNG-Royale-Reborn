@@ -35,6 +35,8 @@ local Game = {
 
     save_corrupted = false,
     mouse_was_down = false,
+    pending_action = nil,
+    autosave_timer = 30,
 }
 
 local RARE_SHAKE_RARITIES = {
@@ -68,8 +70,16 @@ function Game.load()
     end
 end
 
+function Game.save()
+    local ok, err = pcall(Save.save, Game.player)
+    if not ok then
+        print("Save failed: " .. tostring(err))
+    end
+    return ok
+end
+
 function Game.quit()
-    Save.save(Game.player)
+    Game.save()
     Sound.stop_music()
 end
 
@@ -262,12 +272,28 @@ function Game.confirm_prestige()
     Game.player = Mechanics.prestige_reset(Game.player)
     Game.sync_money()
     Game.auto_roll_cooldown = 0
-    Save.save(Game.player)
+    Game.save()
     Game.is_prestiging = false
     Game.dialog = nil
 end
 
+function Game.process_pending_action()
+    local action = Game.pending_action
+    if not action then return end
+    Game.pending_action = nil
+
+    if action == "prestige" then
+        Game.confirm_prestige()
+    elseif action == "sell_all" then
+        Game.confirm_sell_all()
+    elseif action == "reset" then
+        require("src.ui.overlays.settings").apply_reset()
+    end
+end
+
 function Game.update(dt)
+    Game.process_pending_action()
+
     Game.breathing_angle = Game.breathing_angle + dt * 6
     Game.prismatic_hue = (Game.prismatic_hue + dt * 120) % 360
     Game.prismatic_color = {require("src.utils.visuals").color_from_hsv(Game.prismatic_hue, 1, 1)}
@@ -293,6 +319,12 @@ function Game.update(dt)
     end
 
     Game.update_money_animation(dt)
+
+    Game.autosave_timer = Game.autosave_timer - dt
+    if Game.autosave_timer <= 0 then
+        Game.save()
+        Game.autosave_timer = 30
+    end
 end
 
 function Game.get_active_timer(effect_type, label)

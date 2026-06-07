@@ -50,14 +50,16 @@ function Visuals.apply_shake()
     end
 end
 
-function Visuals.draw_mutation_aura(image, mutation_name, dynamic_color, x, y, scale)
-    scale = scale or 1
-    local w = image:getWidth() * scale
-    local h = image:getHeight() * scale
-    local padding = 16 * scale
+function Visuals.draw_mutation_aura(image, mutation_name, dynamic_color, x, y, w, h)
+    local img_w, img_h = image:getWidth(), image:getHeight()
+    local scale = math.min(w / img_w, h / img_h) * 0.85
+    local draw_w = img_w * scale
+    local draw_h = img_h * scale
+    local draw_x = x + (w - draw_w) / 2
+    local draw_y = y + (h - draw_h) / 2
 
     if mutation_name == "Ничего" then
-        love.graphics.draw(image, x, y, 0, scale, scale)
+        love.graphics.draw(image, draw_x, draw_y, 0, scale, scale)
         return
     end
 
@@ -69,14 +71,16 @@ function Visuals.draw_mutation_aura(image, mutation_name, dynamic_color, x, y, s
     end
 
     if not aura_color then
-        love.graphics.draw(image, x, y, 0, scale, scale)
+        love.graphics.draw(image, draw_x, draw_y, 0, scale, scale)
         return
     end
 
+    local cx = draw_x + draw_w / 2
+    local cy = draw_y + draw_h / 2
     love.graphics.setColor(aura_color)
-    love.graphics.ellipse("fill", x + w / 2, y + h / 2, (w + padding) / 2, (h + padding) / 2)
+    love.graphics.ellipse("fill", cx, cy, draw_w * 0.65, draw_h * 0.65)
     love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.draw(image, x, y, 0, scale, scale)
+    love.graphics.draw(image, draw_x, draw_y, 0, scale, scale)
 end
 
 return Visuals
