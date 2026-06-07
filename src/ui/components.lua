@@ -1,3 +1,4 @@
+-- src/ui/components.lua
 local Format = require("src.utils.format")
 
 local UI = {
@@ -33,7 +34,7 @@ function UI.load()
     UI.fonts = {
         main = load_font(font_path, 16),
         small = load_font(font_path, 14),
-        button = load_font(font_path, 22),
+        button = load_font(font_path, 19), -- Слегка уменьшен, чтобы текст гарантированно влезал в кнопки
         title = load_font(font_path, 32),
         huge = load_font(font_path, 64),
         money = load_font(font_path, 20),
@@ -51,10 +52,18 @@ end
 
 function UI.draw_group_box(text, x, y, w, h)
     love.graphics.setFont(UI.fonts.main)
-    love.graphics.setColor(1, 1, 1, 0.35)
+    love.graphics.setColor(1, 1, 1, 0.25)
+    -- Брутальная двойная рамка
     love.graphics.rectangle("line", x, y, w, h)
+    love.graphics.rectangle("line", x + 1, y + 1, w - 2, h - 2)
+    
+    -- Вырезаем плашку под текст
+    local tw = UI.fonts.main:getWidth(text)
+    love.graphics.setColor(25/255, 25/255, 25/255, 1)
+    love.graphics.rectangle("fill", x + 10, y - 10, tw + 8, 18)
+    
     love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.print(text, x + 10, y - 10)
+    love.graphics.print(text, x + 14, y - 10)
 end
 
 function UI.draw_label(text, x, y, font, color)
@@ -66,7 +75,7 @@ end
 function UI.draw_panel(x, y, w, h, color)
     love.graphics.setColor(color or {0.1, 0.1, 0.1, 1})
     love.graphics.rectangle("fill", x, y, w, h)
-    love.graphics.setColor(1, 1, 1, 0.25)
+    love.graphics.setColor(1, 1, 1, 0.2)
     love.graphics.rectangle("line", x, y, w, h)
 end
 
@@ -79,15 +88,38 @@ function UI.button(id, text, x, y, w, h, bg_color, border_color, enabled)
         UI.hovered_button = id
     end
 
-    love.graphics.setColor(bg_color)
+    -- Тень под кнопкой
+    love.graphics.setColor(0, 0, 0, 0.4)
+    love.graphics.rectangle("fill", x + 3, y + 3, w, h)
+
+    local final_bg = {bg_color[1], bg_color[2], bg_color[3]}
+    if is_over then
+        final_bg[1] = math.min(1, final_bg[1] + 0.1)
+        final_bg[2] = math.min(1, final_bg[2] + 0.1)
+        final_bg[3] = math.min(1, final_bg[3] + 0.1)
+    end
+    
+    love.graphics.setColor(final_bg[1], final_bg[2], final_bg[3], enabled and 1 or 0.25)
     love.graphics.rectangle("fill", x, y, w, h)
-    love.graphics.setColor(border_color)
+    
+    love.graphics.setColor(border_color[1], border_color[2], border_color[3], enabled and 1 or 0.2)
     love.graphics.setLineWidth(2)
     love.graphics.rectangle("line", x, y, w, h)
 
     love.graphics.setFont(UI.fonts.button)
-    love.graphics.setColor(1, 1, 1, enabled and (is_over and 1 or 0.85) or 0.45)
-    love.graphics.printf(text, x, y + (h / 2 - 12), w, "center")
+    love.graphics.setColor(1, 1, 1, enabled and (is_over and 1 or 0.85) or 0.3)
+    
+    -- Безопасный перенос строк внутри кнопки
+    local lines = {}
+    for s in string.gmatch(text, "[^\n]+") do
+        table.insert(lines, s)
+    end
+    
+    local total_h = #lines * 18
+    local start_y = y + (h - total_h) / 2
+    for i, line in ipairs(lines) do
+        love.graphics.printf(line, x, start_y + (i - 1) * 18, w, "center")
+    end
 
     local clicked = false
     if is_over and love.mouse.isDown(1) and not UI.mouse_was_down then
@@ -102,7 +134,7 @@ function UI.breathing_button(id, text, x, y, w, h, bg_color, border_color, can_a
     enabled = enabled ~= false
     local scale = 1
     if enabled and can_afford and breathing_angle then
-        scale = 1 + math.abs(math.sin(breathing_angle)) * 0.05
+        scale = 1 + math.abs(math.sin(breathing_angle)) * 0.04
     end
 
     local nw = w * scale
@@ -113,17 +145,17 @@ function UI.breathing_button(id, text, x, y, w, h, bg_color, border_color, can_a
 end
 
 function UI.draw_progress_bar(x, y, w, h, progress)
-    love.graphics.setColor(0.1, 0.1, 0.1, 1)
+    love.graphics.setColor(0.08, 0.08, 0.08, 1)
     love.graphics.rectangle("fill", x, y, w, h)
-    love.graphics.setColor(1, 1, 1, 0.5)
-    love.graphics.rectangle("fill", x, y, w * progress, h)
-    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.setColor(0.25, 0.45, 0.25, 1) -- Брутальный темно-зеленый
+    love.graphics.rectangle("fill", x + 2, y + 2, (w - 4) * progress, h - 4)
+    love.graphics.setColor(1, 1, 1, 0.35)
     love.graphics.rectangle("line", x, y, w, h)
 end
 
 function UI.draw_modal(title, message, buttons)
     local sw, sh = love.graphics.getDimensions()
-    love.graphics.setColor(0, 0, 0, 0.65)
+    love.graphics.setColor(0, 0, 0, 0.75)
     love.graphics.rectangle("fill", 0, 0, sw, sh)
 
     local w, h = 520, 220
@@ -144,7 +176,7 @@ function UI.draw_modal(title, message, buttons)
 
     for i, btn in ipairs(buttons) do
         if UI.button("dialog_" .. btn.id, btn.text, bx + (i - 1) * (bw + gap), by, bw, 36,
-            {0.25, 0.25, 0.25}, {1, 1, 1}) then
+            {0.2, 0.2, 0.2}, {1, 1, 1}) then
             result = btn.id
         end
     end
@@ -154,11 +186,11 @@ end
 
 function UI.draw_overlay_frame(title, w, h, draw_content)
     local sw, sh = love.graphics.getDimensions()
-    love.graphics.setColor(0, 0, 0, 0.65)
+    love.graphics.setColor(0, 0, 0, 0.75)
     love.graphics.rectangle("fill", 0, 0, sw, sh)
 
     local x, y = (sw - w) / 2, (sh - h) / 2
-    UI.draw_panel(x, y, w, h, {0.1, 0.1, 0.1, 1})
+    UI.draw_panel(x, y, w, h, {0.09, 0.09, 0.09, 1})
     UI.draw_label(title, x + 16, y + 12, UI.fonts.button)
 
     draw_content(x, y, w, h)
@@ -166,8 +198,8 @@ function UI.draw_overlay_frame(title, w, h, draw_content)
 end
 
 function UI.toggle_button(id, text, x, y, w, h, active)
-    local bg = active and {0.15, 0.35, 0.15} or {0.2, 0.2, 0.2}
-    local border = active and {0.3, 1, 0.3} or {0.5, 0.5, 0.5}
+    local bg = active and {0.08, 0.25, 0.08} or {0.15, 0.15, 0.15}
+    local border = active and {0.2, 0.8, 0.2} or {0.4, 0.4, 0.4}
     if UI.button(id, text, x, y, w, h, bg, border) then
         return true
     end
