@@ -10,6 +10,9 @@ local CraftStore = require("src.ui.overlays.craft_store")
 local SettingsOverlay = require("src.ui.overlays.settings")
 local Statistics = require("src.ui.overlays.statistics")
 local Credits = require("src.ui.overlays.credits")
+local Codex = require("src.ui.overlays.codex")
+local AchievementsOverlay = require("src.ui.overlays.achievements_overlay")
+local Achievements = require("src.logic.achievements")
 local Settings = require("src.utils.settings")
 
 local GameScreen = {}
@@ -56,19 +59,33 @@ local function draw_upgrade_buttons(game)
         {0, 0, 64 / 255}, {0, 0, 1}, game.can_afford_upgrade("AutoRoll"), auto.level < auto.max_level, game.breathing_angle) then
         game.buy_upgrade("AutoRoll")
     end
+
+    if p.upgrades.AutoRoll.level > 0 then
+        if UI.toggle_button("auto_collect", "AUTO\nCOLLECT", 21, 240, 166, 58, p.auto_collect and not p.auto_sell) then
+            game.toggle_auto_collect()
+        end
+        if UI.toggle_button("auto_sell", "AUTO\nSELL", 207, 240, 171, 58, p.auto_sell) then
+            game.toggle_auto_sell()
+        end
+    end
 end
 
 local function draw_play_panel(game)
     local px, py = 397, 12
     UI.draw_group_box("Play", px, py, 375, 315)
 
-    -- Как в WinForms: picPanel внутри groupPlay (75, 78), размер 220x187
     local frame_x, frame_y = px + 75, py + 78
     local frame_w, frame_h = 220, 187
     UI.draw_panel(frame_x, frame_y, frame_w, frame_h, {0.08, 0.08, 0.08, 1})
 
     love.graphics.setScissor(frame_x, frame_y, frame_w, frame_h)
-    if game.last_rolled then
+    if game.is_rolling and game.roll_anim_item then
+        local image = game.images[game.roll_anim_item.img]
+        if image then
+            love.graphics.setColor(1, 1, 1, 0.85)
+            Visuals.draw_mutation_aura(image, "Ничего", game.prismatic_color, frame_x, frame_y, frame_w, frame_h)
+        end
+    elseif game.last_rolled then
         local rolled = game.last_rolled
         local image = game.images[rolled.material.img]
         if image then
@@ -82,28 +99,29 @@ local function draw_play_panel(game)
     elseif game.last_rolled then
         local rolled = game.last_rolled
         UI.draw_label(rolled.material.name:upper(), px + 90, py + 40, UI.fonts.button)
+        UI.draw_label(Format.money(rolled.final_value), px + 90, py + 68, UI.fonts.main, {1, 0.84, 0, 1})
         if rolled.mutation.name ~= "Ничего" then
-            UI.draw_label(rolled.mutation.name:upper(), px + 90, py + 68, UI.fonts.main, Constants.MUTATION_COLORS[rolled.mutation.name])
+            UI.draw_label(rolled.mutation.name:upper(), px + 90, py + 92, UI.fonts.main, Constants.MUTATION_COLORS[rolled.mutation.name])
         end
 
-        if UI.button("sell_now", "SELL NOW", px + 26, py + 20, 116, 52, {0.25, 0.25, 0.25}, {1, 1, 1}) then
+        if UI.button("sell_now", "SELL [S]", px + 26, py + 20, 116, 52, {0.25, 0.25, 0.25}, {1, 1, 1}) then
             game.sell_now()
         end
-        if UI.button("collect", "COLLECT", px + 150, py + 20, 116, 52, {0.25, 0.25, 0.25}, {1, 1, 1}) then
+        if UI.button("collect", "KEEP [C]", px + 150, py + 20, 116, 52, {0.25, 0.25, 0.25}, {1, 1, 1}) then
             game.collect_now()
         end
     else
-        if UI.button("roll", "ROLL", px + 26, py + 20, 116, 52, {0.25, 0.25, 0.25}, {1, 1, 1}, not game.is_rolling) then
+        if UI.button("roll", "ROLL [SPACE]", px + 26, py + 20, 116, 52, {0.25, 0.25, 0.25}, {1, 1, 1}, not game.is_rolling) then
             game.start_roll()
         end
     end
 
     local potion_slots = {
-        { name = "Luck Potion", x = px + 240, y = py + 20 },
-        { name = "Money Potion", x = px + 300, y = py + 20 },
-        { name = "Mutation Potion", x = px + 240, y = py + 90 },
-        { name = "Duplication Potion", x = px + 300, y = py + 90 },
-        { name = "Potion of Wisdom", x = px + 270, y = py + 160 },
+        { name = "Luck Potion", hotkey = "1", x = px + 240, y = py + 20 },
+        { name = "Money Potion", hotkey = "2", x = px + 300, y = py + 20 },
+        { name = "Mutation Potion", hotkey = "3", x = px + 240, y = py + 90 },
+        { name = "Duplication Potion", hotkey = "4", x = px + 300, y = py + 90 },
+        { name = "Potion of Wisdom", hotkey = "5", x = px + 270, y = py + 160 },
     }
 
     for _, slot in ipairs(potion_slots) do
@@ -115,6 +133,7 @@ local function draw_play_panel(game)
                 love.graphics.draw(image, slot.x, slot.y, 0, 0.45, 0.45)
             end
             UI.draw_label("x" .. count, slot.x + 28, slot.y + 24, UI.fonts.small)
+            UI.draw_label("[" .. slot.hotkey .. "]", slot.x, slot.y - 12, UI.fonts.small, {0.5, 0.5, 0.5, 1})
             if UI.button("use_" .. slot.name, "", slot.x, slot.y, 44, 44, {0, 0, 0, 0}, {0, 0, 0, 0}) then
                 game.use_potion(slot.name)
             end
@@ -125,28 +144,41 @@ end
 local function draw_inventory(game)
     UI.draw_group_box("Inventory", 12, 396, 760, 230)
     local groups = Mechanics.get_inventory_groups(game.player)
-    local y = 420
+    local scroll = game.inventory_scroll or 0
     local x = 24
+    local base_y = 420
+
+    love.graphics.setScissor(12, 396, 760, 190)
 
     if #groups == 0 then
-        UI.draw_label("Empty", x, y, UI.fonts.main, {0.5, 0.5, 0.5, 1})
+        UI.draw_label("Empty", x, base_y - scroll, UI.fonts.main, {0.5, 0.5, 0.5, 1})
     else
-        local lines = {}
-        for gi, group in ipairs(groups) do
+        local y = base_y - scroll
+        for _, group in ipairs(groups) do
             local color = Constants.MUTATION_COLORS[group.mutation] or {0.8, 0.8, 0.8}
-            local parts = {}
             for _, entry in ipairs(group.entries) do
-                table.insert(parts, entry.name:upper() .. " X" .. entry.count)
+                local key = entry.name
+                if group.mutation ~= "Ничего" then
+                    key = entry.name .. " (" .. group.mutation .. ")"
+                end
+                local text = entry.name:upper() .. " x" .. entry.count
+                if group.mutation ~= "Ничего" then
+                    text = group.mutation:upper() .. " " .. text
+                end
+
+                if UI.button("sell_" .. key, text, x, y, 520, 22,
+                    {0, 0, 0, 0}, color, true) then
+                    game.sell_inventory_key(key)
+                end
+                y = y + 24
             end
-            local text = table.concat(parts, ", ")
-            if group.mutation ~= "Ничего" then
-                text = group.mutation:upper() .. ": " .. text
-            end
-            UI.draw_label(text, x, y, UI.fonts.main, color)
-            y = y + 20
-            if y > 590 then break end
+            y = y + 4
         end
     end
+
+    love.graphics.setScissor()
+
+    UI.draw_label("Click item to sell", x, 588, UI.fonts.small, {0.45, 0.45, 0.45, 1})
 
     local has_items = Mechanics.has_inventory(game.player)
     if UI.button("sell_all", "SELL ALL", 650, 580, 110, 36, {0.25, 0.25, 0.25}, {1, 1, 1}, has_items) then
@@ -158,14 +190,23 @@ local function draw_status_labels(game)
     local p = game.player
     UI.draw_label("MONEY: " .. Format.number(game.displayed_money), 15, 292, UI.fonts.money)
     UI.draw_label("TOTAL ROLLS: " .. Format.number(p.total_rolls), 198, 247, UI.fonts.small)
-    UI.draw_label("LUCK LEVEL : " .. p.upgrades.Luck.level, 15, 247, UI.fonts.small)
+    UI.draw_label("LUCK: " .. game.get_luck_display(), 15, 247, UI.fonts.small)
     UI.draw_label("ROLL SPEED (MS) : " .. Upgrades.get_roll_time_ms(p.upgrades.FasterRoll.level), 198, 259, UI.fonts.small)
     UI.draw_label("SELL MUL. LEVEL : X" .. string.format("%.1f", 1 + p.upgrades.SellValue.level * 0.1), 15, 271, UI.fonts.small)
     UI.draw_label("AUTO ROLL LVL : " .. p.upgrades.AutoRoll.level, 198, 271, UI.fonts.small)
-    UI.draw_label("SPEED: " .. string.format("%.1f", Upgrades.get_auto_roll_speed(p.upgrades.AutoRoll.level)) .. "s", 198, 283, UI.fonts.small)
+    UI.draw_label("PITY IN: " .. game.get_pity_display() .. " rolls", 15, 259, UI.fonts.small, {0.8, 0.6, 1, 1})
+
+    if (p.luck_streak or 0) >= Constants.LUCK_STREAK_THRESHOLD then
+        UI.draw_label("STREAK x" .. p.luck_streak .. "!", 198, 283, UI.fonts.small, {1, 0.8, 0.2, 1})
+    else
+        UI.draw_label("SPEED: " .. string.format("%.1f", Upgrades.get_auto_roll_speed(p.upgrades.AutoRoll.level)) .. "s", 198, 283, UI.fonts.small)
+    end
 
     UI.draw_label("LVL: " .. p.level .. " (P: " .. p.prestige_level .. ")", 15, 375, UI.fonts.main)
     UI.draw_label(Format.number(p.current_xp) .. " / " .. Format.number(p.required_xp) .. " XP", 180, 375, UI.fonts.main)
+
+    local ach_count = Achievements.count_unlocked(p)
+    UI.draw_label("ACH: " .. ach_count .. "/" .. #Achievements.list, 400, 375, UI.fonts.small, {0.8, 0.9, 0.5, 1})
 
     local timers = {
         game.get_active_timer(Potions.EFFECT.LuckBoost, "x2 LUCK POTION : "),
@@ -205,21 +246,27 @@ function GameScreen.draw(game)
     draw_status_labels(game)
     UI.draw_progress_bar(11, 333, 761, 36, game.get_xp_progress())
 
-    if UI.button("store", "Store", 471, 632, 146, 46, {0.25, 0.25, 0.25}, {1, 1, 1}, not game.overlay) then
+    if UI.button("store", "Store", 470, 632, 80, 46, {0.25, 0.25, 0.25}, {1, 1, 1}, not game.overlay) then
         game.overlay = "craft"
     end
-    if UI.button("settings", "Settings", 623, 632, 148, 46, {0.25, 0.25, 0.25}, {1, 1, 1}, not game.overlay) then
-        game.overlay = "settings"
+    if UI.button("codex", "Codex", 290, 632, 80, 46, {0.25, 0.25, 0.25}, {1, 1, 1}, not game.overlay) then
+        game.overlay = "codex"
     end
-    if UI.button("stats", "Stats", 165, 632, 146, 46, {0.25, 0.25, 0.25}, {1, 1, 1}, not game.overlay) then
+    if UI.button("achievements", "Achieve", 376, 632, 88, 46, {0.25, 0.25, 0.25}, {1, 1, 1}, not game.overlay) then
+        game.overlay = "achievements"
+    end
+    if UI.button("stats", "Stats", 118, 632, 80, 46, {0.25, 0.25, 0.25}, {1, 1, 1}, not game.overlay) then
         game.overlay = "stats"
     end
-    if UI.button("credits", "Credits", 317, 632, 146, 46, {0.25, 0.25, 0.25}, {1, 1, 1}, not game.overlay) then
+    if UI.button("credits", "Credits", 204, 632, 80, 46, {0.25, 0.25, 0.25}, {1, 1, 1}, not game.overlay) then
         game.overlay = "credits"
+    end
+    if UI.button("settings", "Settings", 556, 632, 216, 46, {0.25, 0.25, 0.25}, {1, 1, 1}, not game.overlay) then
+        game.overlay = "settings"
     end
 
     local can_prestige = Mechanics.can_prestige(game.player) and not game.is_rolling and not game.is_prestiging
-    if UI.button("prestige", "PRESTIGE", 12, 632, 146, 46, {0.25, 0, 0.25}, {1, 0, 1}, can_prestige) then
+    if UI.button("prestige", "PRESTIGE", 12, 632, 100, 46, {0.25, 0, 0.25}, {1, 0, 1}, can_prestige) then
         game.request_prestige()
     end
 
@@ -242,6 +289,14 @@ function GameScreen.draw(game)
         end
     elseif game.overlay == "credits" then
         if Credits.draw() then
+            game.overlay = nil
+        end
+    elseif game.overlay == "codex" then
+        if Codex.draw(game) then
+            game.overlay = nil
+        end
+    elseif game.overlay == "achievements" then
+        if AchievementsOverlay.draw(game) then
             game.overlay = nil
         end
     end
@@ -277,6 +332,8 @@ function GameScreen.draw(game)
             game.save_corrupted = false
         end
     end
+
+    UI.draw_notifications(game.notifications)
 
     love.graphics.pop()
     play_nav_sound(game)

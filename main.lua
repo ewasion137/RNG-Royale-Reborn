@@ -22,6 +22,10 @@ function love.keypressed(key)
     Game.keypressed(key)
 end
 
+function love.wheelmoved(x, y)
+    Game.wheelmoved(x, y)
+end
+
 function love.quit()
     Game.quit()
 end

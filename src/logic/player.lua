@@ -16,6 +16,12 @@ function Player.new()
         level = 1,
         current_xp = 0,
         required_xp = 100,
+        auto_sell = false,
+        auto_collect = true,
+        pity_counter = 0,
+        luck_streak = 0,
+        last_save_time = os.time(),
+        achievements = {},
         stats = {
             total_rolls_all_time = 0,
             total_money_earned = 0,
@@ -47,6 +53,20 @@ end
 function Player.add_discovered_material(player, name)
     if not Player.has_discovered_material(player, name) then
         table.insert(player.discovered_materials, name)
+    end
+end
+
+function Player.has_discovered_mutation(player, name)
+    for _, n in ipairs(player.discovered_mutations) do
+        if n == name then return true end
+    end
+    return false
+end
+
+function Player.add_discovered_mutation(player, name)
+    if name == "Ничего" then return end
+    if not Player.has_discovered_mutation(player, name) then
+        table.insert(player.discovered_mutations, name)
     end
 end
 

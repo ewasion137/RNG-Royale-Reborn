@@ -165,6 +165,32 @@ function UI.draw_overlay_frame(title, w, h, draw_content)
     return x, y, w, h
 end
 
+function UI.toggle_button(id, text, x, y, w, h, active)
+    local bg = active and {0.15, 0.35, 0.15} or {0.2, 0.2, 0.2}
+    local border = active and {0.3, 1, 0.3} or {0.5, 0.5, 0.5}
+    if UI.button(id, text, x, y, w, h, bg, border) then
+        return true
+    end
+    return false
+end
+
+function UI.draw_notifications(notifications)
+    local sw = love.graphics.getDimensions()
+    local y = 80
+    for i = #notifications, 1, -1 do
+        local note = notifications[i]
+        local alpha = math.min(1, note.life / (note.max_life * 0.3))
+        local text_w = UI.fonts.main:getWidth(note.text) + 24
+        local nx = sw - text_w - 16
+        love.graphics.setColor(0.08, 0.12, 0.08, 0.9 * alpha)
+        love.graphics.rectangle("fill", nx, y, text_w, 28, 4, 4)
+        love.graphics.setColor(0.3, 0.9, 0.3, 0.7 * alpha)
+        love.graphics.rectangle("line", nx, y, text_w, 28, 4, 4)
+        UI.draw_label(note.text, nx + 12, y + 6, UI.fonts.main, {0.9, 1, 0.9, alpha})
+        y = y + 34
+    end
+end
+
 function UI.format_money(value)
     return Format.money(value)
 end

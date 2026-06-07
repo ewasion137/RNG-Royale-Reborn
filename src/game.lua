@@ -8,6 +8,7 @@ local Player = require("src.logic.player")
 local Save = require("src.logic.save")
 local Settings = require("src.utils.settings")
 local Sound = require("src.utils.sound")
+local Format = require("src.utils.format")
 
 local Game = {
     player = nil,
@@ -19,6 +20,8 @@ local Game = {
     last_rolled = nil,
     is_rolling = false,
     roll_timer = 0,
+    roll_anim_item = nil,
+    roll_anim_timer = 0,
     is_prestiging = false,
 
     auto_roll_cooldown = 0,
@@ -29,6 +32,7 @@ local Game = {
     dialog = nil,
 
     floating_money = {},
+    notifications = {},
     breathing_angle = 0,
     prismatic_hue = 0,
     prismatic_color = {1, 0, 0},
@@ -37,12 +41,31 @@ local Game = {
     mouse_was_down = false,
     pending_action = nil,
     autosave_timer = 30,
+
+    codex_scroll = 0,
+    achievements_scroll = 0,
+    inventory_scroll = 0,
 }
 
 local RARE_SHAKE_RARITIES = {
     legendary = true,
     mythic = true,
     unbelievable = true,
+}
+
+local RARE_NOTIFY_RARITIES = {
+    epic = true,
+    legendary = true,
+    mythic = true,
+    unbelievable = true,
+}
+
+local POTION_HOTKEYS = {
+    ["1"] = "Luck Potion",
+    ["2"] = "Money Potion",
+    ["3"] = "Mutation Potion",
+    ["4"] = "Duplication Potion",
+    ["5"] = "Potion of Wisdom",
 }
 
 function Game.load()
@@ -68,6 +91,22 @@ function Game.load()
     if auto_level > 0 then
         Game.auto_roll_cooldown = Upgrades.get_auto_roll_speed(auto_level)
     end
+
+    local offline = Mechanics.process_offline_progress(player, Items.flat, Mutations.list)
+    if offline and offline.rolls > 0 then
+        Game.sync_money()
+        Game.show_notification(string.format(
+            "Offline: %d rolls in %s! +%s",
+            offline.rolls,
+            Format.time(offline.seconds),
+            Format.money(offline.money)
+        ), 6)
+        if offline.items > 0 then
+            Game.show_notification("Collected " .. offline.items .. " items while away", 4)
+        end
+    end
+
+    Mechanics.check_achievements(player)
 end
 
 function Game.save()
@@ -88,6 +127,14 @@ function Game.sync_money()
     Game.target_money = Game.player.money
 end
 
+function Game.show_notification(text, duration)
+    table.insert(Game.notifications, {
+        text = text,
+        life = duration or 4,
+        max_life = duration or 4,
+    })
+end
+
 function Game.spawn_floating_money(amount)
     table.insert(Game.floating_money, {
         amount = amount,
@@ -96,6 +143,17 @@ function Game.spawn_floating_money(amount)
         life = 1.5,
         max_life = 1.5,
     })
+end
+
+function Game.unlock_achievements(achievements)
+    for _, achievement in ipairs(achievements) do
+        local reward_text = achievement.reward_money and (" (+" .. Format.money(achievement.reward_money) .. ")") or ""
+        Game.show_notification("Achievement: " .. achievement.title .. reward_text, 5)
+        Sound.play_sfx("level_up.wav")
+    end
+    if #achievements > 0 then
+        Game.target_money = Game.player.money
+    end
 end
 
 function Game.update_money_animation(dt)
@@ -120,6 +178,20 @@ function Game.update_money_animation(dt)
     end
 end
 
+function Game.update_notifications(dt)
+    for i = #Game.notifications, 1, -1 do
+        local note = Game.notifications[i]
+        note.life = note.life - dt
+        if note.life <= 0 then
+            table.remove(Game.notifications, i)
+        end
+    end
+end
+
+function Game.pick_roll_anim_item()
+    return Items.flat[math.random(#Items.flat)]
+end
+
 function Game.start_roll()
     if Game.is_rolling or Game.last_rolled or Game.overlay or Game.dialog then
         return
@@ -129,6 +201,8 @@ function Game.start_roll()
     Game.player.total_rolls = Game.player.total_rolls + 1
     Game.player.stats.total_rolls_all_time = Game.player.stats.total_rolls_all_time + 1
     Game.roll_timer = Upgrades.get_roll_time_ms(Game.player.upgrades.FasterRoll.level) / 1000
+    Game.roll_anim_item = Game.pick_roll_anim_item()
+    Game.roll_anim_timer = 0
     Sound.play_sfx("roll.wav")
 end
 
@@ -150,7 +224,9 @@ function Game.finish_roll()
         require("src.utils.visuals").shake(0.3, 5)
     end
 
+    Game.unlock_achievements(Mechanics.check_achievements(Game.player))
     Game.is_rolling = false
+    Game.roll_anim_item = nil
 end
 
 function Game.sell_now()
@@ -163,6 +239,7 @@ function Game.sell_now()
     if leveled_up then
         Sound.play_sfx("level_up.wav")
     end
+    Game.unlock_achievements(Mechanics.check_achievements(Game.player))
 end
 
 function Game.collect_now()
@@ -176,6 +253,7 @@ function Game.collect_now()
     if leveled_up then
         Sound.play_sfx("level_up.wav")
     end
+    Game.unlock_achievements(Mechanics.check_achievements(Game.player))
 end
 
 function Game.sell_all()
@@ -197,6 +275,7 @@ function Game.confirm_sell_all()
         end
     end
     Game.dialog = nil
+    Game.unlock_achievements(Mechanics.check_achievements(Game.player))
 end
 
 function Game.buy_upgrade(key)
@@ -207,6 +286,7 @@ function Game.buy_upgrade(key)
         end
         Game.sync_money()
         Sound.play_sfx("upgrade_buy.wav")
+        Game.unlock_achievements(Mechanics.check_achievements(Game.player))
     else
         Sound.play_sfx("cant_buy.wav")
     end
@@ -217,6 +297,7 @@ function Game.use_potion(name)
     local ok, reason = Mechanics.use_potion(Game.player, name)
     if ok then
         Sound.play_sfx("drink_potion.wav")
+        Game.unlock_achievements(Mechanics.check_achievements(Game.player))
     elseif reason == "limit" then
         Sound.play_sfx("cant_buy.wav")
         Game.dialog = {
@@ -239,6 +320,28 @@ function Game.buy_potion(name)
     return ok
 end
 
+function Game.toggle_auto_sell()
+    Mechanics.toggle_auto_sell(Game.player)
+    Game.show_notification(Game.player.auto_sell and "Auto Sell: ON" or "Auto Sell: OFF", 2)
+end
+
+function Game.toggle_auto_collect()
+    Mechanics.toggle_auto_collect(Game.player)
+    Game.show_notification(Game.player.auto_collect and "Auto Collect: ON" or "Auto Collect: OFF", 2)
+end
+
+function Game.sell_inventory_key(key)
+    local total, leveled_up = Mechanics.sell_inventory_item(Game.player, key, Items.by_name, Mutations.by_name)
+    if total > 0 then
+        Game.target_money = Game.player.money
+        Game.spawn_floating_money(total)
+        Sound.play_sfx("selling.wav")
+        if leveled_up then
+            Sound.play_sfx("level_up.wav")
+        end
+    end
+end
+
 function Game.request_prestige()
     if Game.is_prestiging or Game.is_rolling or not Mechanics.can_prestige(Game.player) then
         return
@@ -249,8 +352,11 @@ function Game.request_prestige()
         kind = "prestige",
         title = "Confirm Prestige",
         message = string.format(
-            "Are you sure you want to prestige?\n\nThis will reset:\n- Money, Upgrades, Inventory\n- Active Potions, Level and XP\n\nYou will reach Prestige Level %d.",
-            new_level
+            "Are you sure you want to prestige?\n\nThis will reset:\n- Money, Upgrades, Inventory\n- Active Potions, Level and XP\n\nYou will reach Prestige Level %d.\n\nBonuses: +%.0f%% sell, +%.0f%% luck, +%.0f%% XP per prestige.",
+            new_level,
+            Constants.PRESTIGE_SELL_VALUE_BONUS * 100,
+            Constants.PRESTIGE_LUCK_BONUS * 100,
+            Constants.PRESTIGE_XP_BONUS * 100
         ),
     }
 end
@@ -275,6 +381,7 @@ function Game.confirm_prestige()
     Game.save()
     Game.is_prestiging = false
     Game.dialog = nil
+    Game.unlock_achievements(Mechanics.check_achievements(Game.player))
 end
 
 function Game.process_pending_action()
@@ -291,6 +398,29 @@ function Game.process_pending_action()
     end
 end
 
+function Game.handle_auto_roll()
+    local rolled, mode, amount = Mechanics.perform_silent_roll(Game.player, Items.flat, Mutations.list)
+    Game.player.total_rolls = Game.player.total_rolls + 1
+    Game.player.stats.total_rolls_all_time = Game.player.stats.total_rolls_all_time + 1
+
+    if mode == "sell" then
+        Game.target_money = Game.player.money
+    end
+
+    if RARE_NOTIFY_RARITIES[rolled.material.rarity] then
+        local mut_text = rolled.mutation.name ~= "Ничего" and (" " .. rolled.mutation.name) or ""
+        Game.show_notification("Auto: " .. rolled.material.name .. mut_text .. "!", 3)
+        if RARE_SHAKE_RARITIES[rolled.material.rarity] then
+            require("src.utils.visuals").shake(0.15, 3)
+        end
+    end
+
+    local achievements = Mechanics.check_achievements(Game.player)
+    if #achievements > 0 then
+        Game.unlock_achievements(achievements)
+    end
+end
+
 function Game.update(dt)
     Game.process_pending_action()
 
@@ -300,6 +430,11 @@ function Game.update(dt)
 
     if Game.is_rolling then
         Game.roll_timer = Game.roll_timer - dt
+        Game.roll_anim_timer = Game.roll_anim_timer + dt
+        if Game.roll_anim_timer >= 0.08 then
+            Game.roll_anim_timer = 0
+            Game.roll_anim_item = Game.pick_roll_anim_item()
+        end
         if Game.roll_timer <= 0 then
             Game.finish_roll()
         end
@@ -309,16 +444,14 @@ function Game.update(dt)
     if auto_level > 0 and not Game.is_rolling and not Game.last_rolled then
         Game.auto_roll_cooldown = Game.auto_roll_cooldown - dt
         if Game.auto_roll_cooldown <= 0 then
-            Mechanics.perform_silent_roll(Game.player, Items.flat, Mutations.list)
+            Game.handle_auto_roll()
             Game.auto_roll_cooldown = Upgrades.get_auto_roll_speed(auto_level)
         end
     end
 
-    if Mechanics.tick_effects(Game.player, dt) and not Game.overlay then
-        -- effects expired
-    end
-
+    Mechanics.tick_effects(Game.player, dt)
     Game.update_money_animation(dt)
+    Game.update_notifications(dt)
 
     Game.autosave_timer = Game.autosave_timer - dt
     if Game.autosave_timer <= 0 then
@@ -330,7 +463,7 @@ end
 function Game.get_active_timer(effect_type, label)
     local effect = Player.get_effect(Game.player, effect_type)
     if effect and effect.time_remaining > 0 then
-        return label .. require("src.utils.format").time(effect.time_remaining)
+        return label .. Format.time(effect.time_remaining)
     end
 end
 
@@ -347,8 +480,58 @@ function Game.get_xp_progress()
     return math.min(1, Game.player.current_xp / Game.player.required_xp)
 end
 
+function Game.get_luck_display()
+    return string.format("x%.2f", Mechanics.get_luck_multiplier(Game.player))
+end
+
+function Game.get_pity_display()
+    local remaining = Constants.PITY_THRESHOLD - (Game.player.pity_counter or 0)
+    return math.max(0, remaining)
+end
+
+function Game.wheelmoved(x, y)
+    if Game.overlay == "codex" then
+        require("src.ui.overlays.codex").wheel(Game, x, y)
+    elseif Game.overlay == "achievements" then
+        require("src.ui.overlays.achievements_overlay").wheel(Game, x, y)
+    elseif not Game.overlay then
+        Game.inventory_scroll = math.max(0, (Game.inventory_scroll or 0) - y * 24)
+    end
+end
+
 function Game.keypressed(key)
-    if key == "l" and not Game.overlay then
+    if key == "escape" then
+        if Game.dialog then
+            Game.dialog = nil
+        elseif Game.overlay then
+            Game.overlay = nil
+        end
+        return
+    end
+
+    if Game.overlay or Game.dialog then return end
+
+    if key == "space" or key == "return" then
+        if Game.last_rolled then
+            Game.collect_now()
+        else
+            Game.start_roll()
+        end
+    elseif key == "s" then
+        if Game.last_rolled then
+            Game.sell_now()
+        end
+    elseif key == "c" then
+        if Game.last_rolled then
+            Game.collect_now()
+        end
+    elseif key == "a" then
+        Game.toggle_auto_sell()
+    elseif key == "v" then
+        Game.toggle_auto_collect()
+    elseif POTION_HOTKEYS[key] then
+        Game.use_potion(POTION_HOTKEYS[key])
+    elseif key == "l" and not Game.overlay then
         Game.player.money = Game.player.money + 1e28
         Game.sync_money()
         Sound.play_sfx("upgrade_buy.wav")

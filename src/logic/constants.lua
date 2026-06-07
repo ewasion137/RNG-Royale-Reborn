@@ -17,6 +17,12 @@ return {
 
     POTION_GLOBAL_TIME_LIMIT_SEC = 86400,
 
+    PITY_THRESHOLD = 500,
+    PITY_MIN_RARITY = "rare",
+    OFFLINE_AUTO_ROLL_MAX_SEC = 3600,
+    LUCK_STREAK_THRESHOLD = 5,
+    LUCK_STREAK_BONUS = 0.25,
+
     RARITY_ORDER = {
         common = 0,
         uncommon = 1,

@@ -55,6 +55,12 @@ local function to_save_data(player)
         Level = player.level,
         CurrentXP = player.current_xp,
         RequiredXP = player.required_xp,
+        AutoSell = player.auto_sell,
+        AutoCollect = player.auto_collect,
+        PityCounter = player.pity_counter,
+        LuckStreak = player.luck_streak or 0,
+        LastSaveTime = player.last_save_time,
+        Achievements = player.achievements,
         Stats = {
             TotalRollsAllTime = player.stats.total_rolls_all_time,
             TotalMoneyEarned = player.stats.total_money_earned,
@@ -81,6 +87,12 @@ local function from_save_data(data)
     player.level = data.Level or 1
     player.current_xp = data.CurrentXP or 0
     player.required_xp = data.RequiredXP or 100
+    player.auto_sell = data.AutoSell or false
+    player.auto_collect = data.AutoCollect ~= false
+    player.pity_counter = data.PityCounter or 0
+    player.luck_streak = data.LuckStreak or 0
+    player.last_save_time = data.LastSaveTime or os.time()
+    player.achievements = data.Achievements or {}
 
     if data.Upgrades then
         for key, upgrade in pairs(data.Upgrades) do
@@ -141,6 +153,7 @@ function Save.load()
 end
 
 function Save.save(player)
+    player.last_save_time = os.time()
     local game_data_json = json.encode(to_save_data(player))
     local hash = love.data.hash("sha256", game_data_json .. Constants.SAVE_SECRET_KEY)
     local save_file = json.encode({

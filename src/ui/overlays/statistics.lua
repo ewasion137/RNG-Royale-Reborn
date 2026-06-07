@@ -30,6 +30,8 @@ function Statistics.draw(game)
         line("Total Money Earned", Format.money(game.player.stats.total_money_earned))
         line("Total XP Earned", Format.number(game.player.stats.total_xp_earned) .. " XP")
         line("Prestige Level", tostring(game.player.prestige_level))
+        line("Highest Item", game.player.stats.highest_item_name .. " (" .. Format.money(game.player.stats.highest_item_value) .. ")")
+        line("Luck Multiplier", string.format("x%.2f", require("src.logic.mechanics").get_luck_multiplier(game.player)))
         text_y = text_y + 8
 
         UI.draw_label("--- MATERIALS FOUND ---", x + 20, text_y, UI.fonts.main)
