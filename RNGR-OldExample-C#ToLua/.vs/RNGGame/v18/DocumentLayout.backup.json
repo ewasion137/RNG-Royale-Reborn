@@ -1,0 +1,155 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\ExpertPC\\Desktop\\projects\\RNGGame\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{47AA23D7-604E-4D6D-B10A-A85508268FD3}|RNGGame\\RNGGame.csproj|c:\\users\\expertpc\\desktop\\projects\\rnggame\\rnggame\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{47AA23D7-604E-4D6D-B10A-A85508268FD3}|RNGGame\\RNGGame.csproj|solutionrelative:rnggame\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{47AA23D7-604E-4D6D-B10A-A85508268FD3}|RNGGame\\RNGGame.csproj|C:\\Users\\ExpertPC\\Desktop\\projects\\RNGGame\\rnggame\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{47AA23D7-604E-4D6D-B10A-A85508268FD3}|RNGGame\\RNGGame.csproj|solutionrelative:rnggame\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{47AA23D7-604E-4D6D-B10A-A85508268FD3}|RNGGame\\RNGGame.csproj|c:\\users\\expertpc\\desktop\\projects\\rnggame\\rnggame\\statisticsform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{47AA23D7-604E-4D6D-B10A-A85508268FD3}|RNGGame\\RNGGame.csproj|solutionrelative:rnggame\\statisticsform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{47AA23D7-604E-4D6D-B10A-A85508268FD3}|RNGGame\\RNGGame.csproj|c:\\users\\expertpc\\desktop\\projects\\rnggame\\rnggame\\gamedata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{47AA23D7-604E-4D6D-B10A-A85508268FD3}|RNGGame\\RNGGame.csproj|solutionrelative:rnggame\\gamedata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{47AA23D7-604E-4D6D-B10A-A85508268FD3}|RNGGame\\RNGGame.csproj|c:\\users\\expertpc\\desktop\\projects\\rnggame\\rnggame\\gameconstasts.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{47AA23D7-604E-4D6D-B10A-A85508268FD3}|RNGGame\\RNGGame.csproj|solutionrelative:rnggame\\gameconstasts.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{47AA23D7-604E-4D6D-B10A-A85508268FD3}|RNGGame\\RNGGame.csproj|c:\\users\\expertpc\\desktop\\projects\\rnggame\\rnggame\\playerdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{47AA23D7-604E-4D6D-B10A-A85508268FD3}|RNGGame\\RNGGame.csproj|solutionrelative:rnggame\\playerdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{47AA23D7-604E-4D6D-B10A-A85508268FD3}|RNGGame\\RNGGame.csproj|c:\\users\\expertpc\\desktop\\projects\\rnggame\\rnggame\\upgrade.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{47AA23D7-604E-4D6D-B10A-A85508268FD3}|RNGGame\\RNGGame.csproj|solutionrelative:rnggame\\upgrade.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{47AA23D7-604E-4D6D-B10A-A85508268FD3}|RNGGame\\RNGGame.csproj|c:\\users\\expertpc\\desktop\\projects\\rnggame\\rnggame\\playerstats.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{47AA23D7-604E-4D6D-B10A-A85508268FD3}|RNGGame\\RNGGame.csproj|solutionrelative:rnggame\\playerstats.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 6,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "StatisticsForm.cs",
+              "DocumentMoniker": "C:\\Users\\ExpertPC\\Desktop\\projects\\RNGGame\\RNGGame\\StatisticsForm.cs",
+              "RelativeDocumentMoniker": "RNGGame\\StatisticsForm.cs",
+              "ToolTip": "C:\\Users\\ExpertPC\\Desktop\\projects\\RNGGame\\RNGGame\\StatisticsForm.cs",
+              "RelativeToolTip": "RNGGame\\StatisticsForm.cs",
+              "ViewState": "AgIAACAAAAAAAAAAAAAwwCMAAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-30T15:10:41.804Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "PlayerStats.cs",
+              "DocumentMoniker": "C:\\Users\\ExpertPC\\Desktop\\projects\\RNGGame\\RNGGame\\PlayerStats.cs",
+              "RelativeDocumentMoniker": "RNGGame\\PlayerStats.cs",
+              "ToolTip": "C:\\Users\\ExpertPC\\Desktop\\projects\\RNGGame\\RNGGame\\PlayerStats.cs",
+              "RelativeToolTip": "RNGGame\\PlayerStats.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-30T15:10:16.686Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Upgrade.cs",
+              "DocumentMoniker": "C:\\Users\\ExpertPC\\Desktop\\projects\\RNGGame\\RNGGame\\Upgrade.cs",
+              "RelativeDocumentMoniker": "RNGGame\\Upgrade.cs",
+              "ToolTip": "C:\\Users\\ExpertPC\\Desktop\\projects\\RNGGame\\RNGGame\\Upgrade.cs",
+              "RelativeToolTip": "RNGGame\\Upgrade.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-30T15:05:42.545Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "PlayerData.cs",
+              "DocumentMoniker": "C:\\Users\\ExpertPC\\Desktop\\projects\\RNGGame\\RNGGame\\PlayerData.cs",
+              "RelativeDocumentMoniker": "RNGGame\\PlayerData.cs",
+              "ToolTip": "C:\\Users\\ExpertPC\\Desktop\\projects\\RNGGame\\RNGGame\\PlayerData.cs",
+              "RelativeToolTip": "RNGGame\\PlayerData.cs",
+              "ViewState": "AgIAABQAAAAAAAAAAIA5wCIAAABlAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-30T15:05:29.295Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "GameConstasts.cs",
+              "DocumentMoniker": "C:\\Users\\ExpertPC\\Desktop\\projects\\RNGGame\\RNGGame\\GameConstasts.cs",
+              "RelativeDocumentMoniker": "RNGGame\\GameConstasts.cs",
+              "ToolTip": "C:\\Users\\ExpertPC\\Desktop\\projects\\RNGGame\\RNGGame\\GameConstasts.cs",
+              "RelativeToolTip": "RNGGame\\GameConstasts.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAewBYAAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-30T14:59:49.431Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "GameData.cs",
+              "DocumentMoniker": "C:\\Users\\ExpertPC\\Desktop\\projects\\RNGGame\\RNGGame\\GameData.cs",
+              "RelativeDocumentMoniker": "RNGGame\\GameData.cs",
+              "ToolTip": "C:\\Users\\ExpertPC\\Desktop\\projects\\RNGGame\\RNGGame\\GameData.cs",
+              "RelativeToolTip": "RNGGame\\GameData.cs",
+              "ViewState": "AgIAADAAAAAAAAAAAAAvwEgAAAAwAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-25T13:01:30.801Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Form1.cs",
+              "DocumentMoniker": "C:\\Users\\ExpertPC\\Desktop\\projects\\RNGGame\\RNGGame\\Form1.cs",
+              "RelativeDocumentMoniker": "RNGGame\\Form1.cs",
+              "ToolTip": "C:\\Users\\ExpertPC\\Desktop\\projects\\RNGGame\\RNGGame\\Form1.cs",
+              "RelativeToolTip": "RNGGame\\Form1.cs",
+              "ViewState": "AgIAAH8AAAAAAAAAAAAIwI8AAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-11T17:40:09.846Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Form1.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
+              "DocumentMoniker": "C:\\Users\\ExpertPC\\Desktop\\projects\\RNGGame\\RNGGame\\Form1.cs",
+              "RelativeDocumentMoniker": "RNGGame\\Form1.cs",
+              "ToolTip": "C:\\Users\\ExpertPC\\Desktop\\projects\\RNGGame\\RNGGame\\Form1.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
+              "RelativeToolTip": "RNGGame\\Form1.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-03T14:10:40.86Z",
+              "EditorCaption": " [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

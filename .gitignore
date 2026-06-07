@@ -13,4 +13,5 @@ love.lnk
 *.sublime-workspace
 run.bat
 run.sh
-run.ps1
+run.ps
+/RNGR-OldExample-C#ToLua/

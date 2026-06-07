@@ -1,4 +1,5 @@
 function love.conf(t)
+    t.identity = "RNG Royale"
     t.window.title = "RNG Royale: Reborn"
     t.window.width = 784
     t.window.height = 736

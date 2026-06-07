@@ -1,0 +1,180 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>ico.ico</ApplicationIcon>
+    <Title>RNG Royale</Title>
+    <PackageId>RNG Royale</PackageId>
+    <Authors>Ewasion</Authors>
+    <Company>Ewasion</Company>
+    <Product>RNG Royale</Product>
+    <Description>An idle/clicker game about collecting rare minerals and chasing luck.</Description>
+    <Copyright>Copyright © 2025 Ewasion. All rights reserved.</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="discord_partner_sdk.dll" />
+    <None Remove="Fonts\vstr.ttf" />
+    <None Remove="ico.ico" />
+    <None Remove="pic\amber.png" />
+    <None Remove="pic\coal.png" />
+    <None Remove="pic\copper.png" />
+    <None Remove="pic\cosmicdust.png" />
+    <None Remove="pic\diamond.png" />
+    <None Remove="pic\emerald.png" />
+    <None Remove="pic\gold.png" />
+    <None Remove="pic\iridium.png" />
+    <None Remove="pic\iron.png" />
+    <None Remove="pic\lapislazuri.png" />
+    <None Remove="pic\meteoriteiron.png" />
+    <None Remove="pic\meteoriteore.png" />
+    <None Remove="pic\obsidian.png" />
+    <None Remove="pic\palladium.png" />
+    <None Remove="pic\pearl.png" />
+    <None Remove="pic\platinum.png" />
+    <None Remove="pic\potiondublication.png" />
+    <None Remove="pic\potionluck.png" />
+    <None Remove="pic\potionmoney.png" />
+    <None Remove="pic\potionmutation.png" />
+    <None Remove="pic\potionwisdom.png" />
+    <None Remove="pic\pyrite.png" />
+    <None Remove="pic\quartz.png" />
+    <None Remove="pic\ruby.png" />
+    <None Remove="pic\saphire.png" />
+    <None Remove="pic\sapphire.png" />
+    <None Remove="pic\silver.png" />
+    <None Remove="pic\starlight.png" />
+    <None Remove="pic\tanzanite.png" />
+    <None Remove="pic\titanium.png" />
+    <None Remove="pic\topaz.png" />
+    <None Remove="Sounds\cant_buy.wav" />
+    <None Remove="Sounds\cheater.wav" />
+    <None Remove="Sounds\common_uncommon.wav" />
+    <None Remove="Sounds\drink_potion.wav" />
+    <None Remove="Sounds\dublication_success.wav" />
+    <None Remove="Sounds\duplication_success.wav" />
+    <None Remove="Sounds\epic.wav" />
+    <None Remove="Sounds\inventory.wav" />
+    <None Remove="Sounds\legendary.wav" />
+    <None Remove="Sounds\level_up.wav" />
+    <None Remove="Sounds\mus.wav" />
+    <None Remove="Sounds\musa.wav" />
+    <None Remove="Sounds\mythic.wav" />
+    <None Remove="Sounds\navigating.wav" />
+    <None Remove="Sounds\overlapping-mutation-glowing.wav" />
+    <None Remove="Sounds\overlapping-mutation-scorching.wav" />
+    <None Remove="Sounds\overlapping-mutation_iridescent.wav" />
+    <None Remove="Sounds\overlapping-mutation_prismatic.wav" />
+    <None Remove="Sounds\overlapping-mutation_radioactive.wav" />
+    <None Remove="Sounds\overlapping-mutation_radioctive.wav" />
+    <None Remove="Sounds\prestige.wav" />
+    <None Remove="Sounds\prestige_success_early.wav" />
+    <None Remove="Sounds\prestige_success_epic.wav" />
+    <None Remove="Sounds\rare.wav" />
+    <None Remove="Sounds\roll.wav" />
+    <None Remove="Sounds\selling.wav" />
+    <None Remove="Sounds\unbelivable.wav" />
+    <None Remove="Sounds\unbelivable_mutation.wav" />
+    <None Remove="Sounds\upgrade_buy.wav" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="ico.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="discord_partner_sdk.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ico.ico" />
+    <EmbeddedResource Include="pic\amber.png" />
+    <EmbeddedResource Include="pic\copper.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Fonts\vstr.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="pic\coal.png" />
+    <EmbeddedResource Include="pic\cosmicdust.png" />
+    <EmbeddedResource Include="pic\diamond.png" />
+    <EmbeddedResource Include="pic\emerald.png" />
+    <EmbeddedResource Include="pic\gold.png" />
+    <EmbeddedResource Include="pic\iridium.png" />
+    <EmbeddedResource Include="pic\iron.png" />
+    <EmbeddedResource Include="pic\lapislazuri.png" />
+    <EmbeddedResource Include="pic\meteoriteiron.png" />
+    <EmbeddedResource Include="pic\obsidian.png" />
+    <EmbeddedResource Include="pic\palladium.png" />
+    <EmbeddedResource Include="pic\pearl.png" />
+    <EmbeddedResource Include="pic\platinum.png" />
+    <EmbeddedResource Include="pic\potiondublication.png" />
+    <EmbeddedResource Include="pic\potionluck.png" />
+    <EmbeddedResource Include="pic\potionmoney.png" />
+    <EmbeddedResource Include="pic\potionmutation.png" />
+    <EmbeddedResource Include="pic\potionwisdom.png" />
+    <EmbeddedResource Include="pic\pyrite.png" />
+    <EmbeddedResource Include="pic\quartz.png" />
+    <EmbeddedResource Include="pic\ruby.png" />
+    <EmbeddedResource Include="pic\saphire.png" />
+    <EmbeddedResource Include="pic\silver.png" />
+    <EmbeddedResource Include="pic\starlight.png" />
+    <EmbeddedResource Include="pic\tanzanite.png" />
+    <EmbeddedResource Include="pic\titanium.png" />
+    <EmbeddedResource Include="pic\topaz.png" />
+    <EmbeddedResource Include="Sounds\cant_buy.wav" />
+    <EmbeddedResource Include="Sounds\cheater.wav" />
+    <EmbeddedResource Include="Sounds\common_uncommon.wav" />
+    <EmbeddedResource Include="Sounds\drink_potion.wav" />
+    <EmbeddedResource Include="Sounds\duplication_success.wav" />
+    <EmbeddedResource Include="Sounds\epic.wav" />
+    <EmbeddedResource Include="Sounds\inventory.wav" />
+    <EmbeddedResource Include="Sounds\legendary.wav" />
+    <EmbeddedResource Include="Sounds\level_up.wav" />
+    <EmbeddedResource Include="Sounds\musa.wav" />
+    <EmbeddedResource Include="Sounds\mythic.wav" />
+    <EmbeddedResource Include="Sounds\navigating.wav" />
+    <EmbeddedResource Include="Sounds\overlapping-mutation-glowing.wav" />
+    <EmbeddedResource Include="Sounds\overlapping-mutation-scorching.wav" />
+    <EmbeddedResource Include="Sounds\overlapping-mutation_iridescent.wav" />
+    <EmbeddedResource Include="Sounds\overlapping-mutation_prismatic.wav" />
+    <EmbeddedResource Include="Sounds\overlapping-mutation_radioactive.wav" />
+    <EmbeddedResource Include="Sounds\prestige_success_early.wav" />
+    <EmbeddedResource Include="Sounds\prestige_success_epic.wav" />
+    <EmbeddedResource Include="Sounds\rare.wav" />
+    <EmbeddedResource Include="Sounds\roll.wav" />
+    <EmbeddedResource Include="Sounds\selling.wav" />
+    <EmbeddedResource Include="Sounds\unbelivable.wav" />
+    <EmbeddedResource Include="Sounds\unbelivable_mutation.wav" />
+    <EmbeddedResource Include="Sounds\upgrade_buy.wav" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DiscordRichPresence" Version="1.6.1.70" />
+    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="ReaLTaiizor" Version="3.8.1.3" />
+    <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="3.119.1" />
+    <PackageReference Include="System.Runtime.Numerics" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>
