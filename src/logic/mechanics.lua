@@ -1,3 +1,4 @@
+-- src/logic/mechanics.lua
 local Constants = require("src.logic.constants")
 local Upgrades = require("src.logic.upgrades")
 local Player = require("src.logic.player")
@@ -80,16 +81,32 @@ function Mechanics.filter_materials(items_flat, luck_level)
     return filtered
 end
 
+-- БРУТАЛЬНЫЙ РАСЧЕТ УДАЧИ
 function Mechanics.get_luck_multiplier(player)
     local luck_level = player.upgrades.Luck.level
     local luck_effect = Player.get_effect(player, Potions.EFFECT.LuckBoost)
     local potion_multiplier = luck_effect and luck_effect.multiplier or 1.0
     local prestige_bonus = 1.0 + (player.prestige_level * Constants.PRESTIGE_LUCK_BONUS)
-    local streak_bonus = 1.0
-    if (player.luck_streak or 0) >= Constants.LUCK_STREAK_THRESHOLD then
-        streak_bonus = 1.0 + Constants.LUCK_STREAK_BONUS
+    
+    -- НАЛОГ НА БРУТАЛЬНОСТЬ: удача презирает тебя за мусорные роллы!
+    local brutality_tax = 1.0
+    local pity = player.pity_counter or 0
+    if pity > 300 then
+        brutality_tax = 0.65 -- Штраф 35% к удаче!
+    elseif pity > 150 then
+        brutality_tax = 0.80 -- Штраф 20% к удаче!
+    elseif pity > 50 then
+        brutality_tax = 0.90 -- Штраф 10% к удаче!
     end
-    return (1 + (luck_level * 0.01)) * potion_multiplier * prestige_bonus * streak_bonus
+
+    -- ПОБЛАЖКА ЗА СЕРИЮ (Streak Bonus): Мощнейший буст при череде хороших роллов!
+    local streak_bonus = 1.0
+    local streak = player.luck_streak or 0
+    if streak >= Constants.LUCK_STREAK_THRESHOLD then
+        streak_bonus = 1.5 + (streak * 0.05)
+    end
+
+    return (1 + (luck_level * 0.01)) * potion_multiplier * prestige_bonus * streak_bonus * brutality_tax
 end
 
 function Mechanics.update_luck_streak(player, material)
@@ -182,6 +199,7 @@ function Mechanics.roll_mutation(mutations, player)
     return pool[#pool]
 end
 
+-- ИСПРАВЛЕННЫЙ ИДЕАЛЬНЫЙ РАСЧЕТ СТОИМОСТИ (без деления на 1 000 000 и умножения на 100)
 function Mechanics.calculate_item_value(material, mutation, player, include_money_potion)
     local sell_boost = 1.0 + (player.upgrades.SellValue.level * 0.1)
     local prestige_sell = 1.0 + (player.prestige_level * Constants.PRESTIGE_SELL_VALUE_BONUS)
@@ -194,18 +212,9 @@ function Mechanics.calculate_item_value(material, mutation, player, include_mone
         end
     end
 
-    local numerator = material.value
-        * math.floor(mutation.multiplier * 100)
-        * math.floor(sell_boost * 100)
-        * math.floor(prestige_sell * 100)
-        * math.floor(money_multiplier * 100)
-
-    local denominator = 100 * 100 * 100
-    if include_money_potion then
-        denominator = denominator * 100
-    end
-
-    return math.floor(numerator / denominator)
+    -- Расчет идет напрямую через плавные множители без костылей скейлинга
+    local total_multiplier = mutation.multiplier * sell_boost * prestige_sell * money_multiplier
+    return math.floor(material.value * total_multiplier)
 end
 
 function Mechanics.roll_item(items_flat, mutations, player)
@@ -245,7 +254,7 @@ end
 function Mechanics.award_xp(player, rolled)
     if not rolled then return false end
 
-    local xp_gained = math.floor(rolled.final_value * 25 / 10 - 2)
+    local xp_gained = math.floor(rolled.final_value * 2.5 - 2)
     local rarity_index = Constants.RARITY_ORDER[rolled.material.rarity] or 0
     xp_gained = xp_gained + rarity_index * 10
 
@@ -258,7 +267,7 @@ function Mechanics.award_xp(player, rolled)
     local wisdom_multiplier = wisdom_effect and wisdom_effect.multiplier or 1.0
     local total_bonus = prestige_multiplier * wisdom_multiplier
 
-    xp_gained = math.floor(xp_gained * math.floor(total_bonus * 100) / 100)
+    xp_gained = math.floor(xp_gained * total_bonus)
     if xp_gained < 1 then
         xp_gained = 1
     end

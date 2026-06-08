@@ -10,7 +10,7 @@ local Save = require("src.logic.save")
 local Settings = require("src.utils.settings")
 local Sound = require("src.utils.sound")
 local Format = require("src.utils.format")
-local Visuals = require("src.utils.visuals") -- Подключаем наши визуальные эффекты
+local Visuals = require("src.utils.visuals")
 
 local Game = {
     player = nil,
@@ -138,7 +138,6 @@ function Game.show_notification(text, duration)
 end
 
 function Game.spawn_floating_money(amount)
-    -- Смещено ближе к левому боксу с балансом
     table.insert(Game.floating_money, {
         amount = amount,
         x = 50,
@@ -248,7 +247,7 @@ function Game.finish_roll()
             Sound.play_sfx(Constants.MUTATION_SOUNDS[rolled.mutation.name])
         end
 
-        -- Вспышки и брутальные встряски для редких предметов
+        -- Вспышки и встряски для редких предметов
         if rarity == "epic" then
             Visuals.flash(0.2, {0.7, 0.2, 1, 0.4})
             Visuals.shake(0.3, 4)
@@ -449,6 +448,31 @@ function Game.confirm_prestige()
     Game.unlock_achievements(Mechanics.check_achievements(Game.player))
 end
 
+-- НАДЕЖНЫЙ СБРОС ИГРЫ (Очищает оперативную память и перезаписывает сейв чистым игроком)
+function Game.reset_progress()
+    -- 1. Сбрасываем игрока в RAM на дефолтного персонажа
+    Game.player = Player.new()
+    
+    -- 2. Синхронизируем все переменные, чтобы UI мгновенно отрисовал нули
+    Game.sync_money()
+    Game.last_rolled = nil
+    Game.is_rolling = false
+    Game.auto_roll_cooldown = 0
+    Game.floating_money = {}
+    Game.notifications = {}
+    
+    -- 3. Принудительно перезаписываем сейв на диске чистыми данными
+    -- Теперь даже при выходе из игры или автосейве запишется чистый сейв
+    Game.save()
+    
+    -- 4. Закрываем настройки и диалоги
+    Game.overlay = nil
+    Game.dialog = nil
+    
+    Game.show_notification("GAME RESET COMPLETED!", 5)
+    Sound.play_sfx("level_up.wav")
+end
+
 function Game.process_pending_action()
     local action = Game.pending_action
     if not action then return end
@@ -459,7 +483,8 @@ function Game.process_pending_action()
     elseif action == "sell_all" then
         Game.confirm_sell_all()
     elseif action == "reset" then
-        require("src.ui.overlays.settings").apply_reset()
+        -- Вызываем наш надежный сброс вместо внешнего метода
+        Game.reset_progress()
     end
 end
 
